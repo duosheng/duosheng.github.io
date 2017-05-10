@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8">
   
-  <title>hashMap的原理 | Hexo</title>
+  <title>hashMap的原理 | 星辰大海</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="哈希表（hash table）也叫散列表，是一种非常重要的数据结构，应用场景及其丰富，许多缓存技术（比如memcached）的核心其实就是在内存中维护一张大的哈希表，而HashMap的实现原理也常常出现在各类的面试题中，重要性可见一斑。本文会对java集合框架中的对应实现HashMap的实现原理进行讲解，然后会对JDK7的HashMap源码进行分析。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="hashMap的原理">
-<meta property="og:url" content="http://yoursite.com/2017/05/10/hashMap的原理/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:url" content="https://xuyuli.github.io/2017/05/10/hashMap的原理/index.html">
+<meta property="og:site_name" content="星辰大海">
 <meta property="og:description" content="哈希表（hash table）也叫散列表，是一种非常重要的数据结构，应用场景及其丰富，许多缓存技术（比如memcached）的核心其实就是在内存中维护一张大的哈希表，而HashMap的实现原理也常常出现在各类的面试题中，重要性可见一斑。本文会对java集合框架中的对应实现HashMap的实现原理进行讲解，然后会对JDK7的HashMap源码进行分析。">
 <meta property="og:updated_time" content="2017-05-10T06:44:24.277Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="hashMap的原理">
 <meta name="twitter:description" content="哈希表（hash table）也叫散列表，是一种非常重要的数据结构，应用场景及其丰富，许多缓存技术（比如memcached）的核心其实就是在内存中维护一张大的哈希表，而HashMap的实现原理也常常出现在各类的面试题中，重要性可见一斑。本文会对java集合框架中的对应实现HashMap的实现原理进行讲解，然后会对JDK7的HashMap源码进行分析。">
   
-    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+    <link rel="alternate" href="/atom.xml" title="星辰大海" type="application/atom+xml">
   
   
     <link rel="icon" href="/favicon.png">
@@ -37,7 +37,7 @@
   <div id="header-outer" class="outer">
     <div id="header-title" class="inner">
       <h1 id="logo-wrap">
-        <a href="/" id="logo">Hexo</a>
+        <a href="/" id="logo">星辰大海</a>
       </h1>
       
     </div>
@@ -57,7 +57,7 @@
         <a id="nav-search-btn" class="nav-icon" title="Search"></a>
       </nav>
       <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://xuyuli.github.io"></form>
       </div>
     </div>
   </div>
@@ -90,7 +90,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/05/10/hashMap的原理/" data-id="cj2ime5q80000hlrhknayts0j" class="article-share-link">Share</a>
+      <a data-url="https://xuyuli.github.io/2017/05/10/hashMap的原理/" data-id="cj2ime5q80000hlrhknayts0j" class="article-share-link">Share</a>
       
       
     </footer>
@@ -158,7 +158,7 @@
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2017 John Doe<br>
+      &copy; 2017 xyl<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
