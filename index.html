@@ -283,6 +283,122 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://xuyuli.github.io/2017/05/11/tomcat源码分析之getOutputStream-与getWriter-的关系-md/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="xyl">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/bb.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="星辰大海">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2017/05/11/tomcat源码分析之getOutputStream-与getWriter-的关系-md/" itemprop="url">tomcat源码分析之getOutputStream()与getWriter()的关系.md</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Veröffentlicht am</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-05-11T19:20:18+08:00">
+                2017-05-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>在使用tomcat的时候,如果同时使用了getOutputStream()与getWriter()就会抛<br>java.lang.IllegalStateException: getOutputStream() has already been called for this response异常</p>
+<pre><code>这是因为,如果同时使用了getOutputStream是直接发送给客户端,而getWriter则是放到了一个缓存里(stringbuf)里,   
+如果同时存在两种操作,务必灰引起紊乱,所以,tomcat会避开这种操作.
+</code></pre><h3 id="先来看下getOutputStream-方法"><a href="#先来看下getOutputStream-方法" class="headerlink" title="先来看下getOutputStream()方法"></a>先来看下getOutputStream()方法</h3><h4 id="如果是nio模式-该方法返回的是NioServletOutputStream类"><a href="#如果是nio模式-该方法返回的是NioServletOutputStream类" class="headerlink" title="如果是nio模式,该方法返回的是NioServletOutputStream类,"></a>如果是nio模式,该方法返回的是NioServletOutputStream类,</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div></pre></td><td class="code"><pre><div class="line">private int doWriteInternal (boolean block, byte[] b, int off, int len)</div><div class="line">            throws IOException &#123;</div><div class="line">        channel.getBufHandler().getWriteBuffer().clear();</div><div class="line">        channel.getBufHandler().getWriteBuffer().put(b, off, len);</div><div class="line">        channel.getBufHandler().getWriteBuffer().flip();</div><div class="line"></div><div class="line">        int written = 0;</div><div class="line">        NioEndpoint.KeyAttachment att =</div><div class="line">                (NioEndpoint.KeyAttachment) channel.getAttachment();</div><div class="line">        if (att == null) &#123;</div><div class="line">            throw new IOException(&quot;Key must be cancelled&quot;);</div><div class="line">        &#125;</div><div class="line">        long writeTimeout = att.getWriteTimeout();</div><div class="line">        Selector selector = null;</div><div class="line">        try &#123;</div><div class="line">            selector = pool.get();</div><div class="line">        &#125; catch ( IOException x ) &#123;</div><div class="line">            //ignore</div><div class="line">        &#125;</div><div class="line">        try &#123;</div><div class="line">            written = pool.write(channel.getBufHandler().getWriteBuffer(),</div><div class="line">                    channel, selector, writeTimeout, block);</div><div class="line">        &#125; finally &#123;</div><div class="line">            if (selector != null) &#123;</div><div class="line">                pool.put(selector);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        if (written &lt; len) &#123;</div><div class="line">            channel.getPoller().add(channel, SelectionKey.OP_WRITE);</div><div class="line">        &#125;</div><div class="line">        return written;</div><div class="line">    &#125;</div><div class="line">``` </div><div class="line">直接与网络层接触,直接返回给客户端</div><div class="line">### 再看下与getWriter</div><div class="line">    实际上返回的是CoyoteWriter类,查看其源码write方法</div><div class="line">``` code</div><div class="line"></div><div class="line">protected OutputBuffer ob;</div><div class="line">@Override</div><div class="line">    public void write(char buf[], int off, int len) &#123;</div><div class="line"></div><div class="line">        if (error) &#123;</div><div class="line">            return;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        try &#123;</div><div class="line">            ob.write(buf, off, len);</div><div class="line">        &#125; catch (IOException e) &#123;</div><div class="line">            error = true;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>其实是写到一个buffer里面,tomcat再从buffer里面读取,这部分逻辑我还没查清楚,有可能读跟写是并行的.</p>
+<h4 id="所以tomcat要杜绝你即使用先来看下getOutputStream-又使用getWriter-防止出现数据的不连续性"><a href="#所以tomcat要杜绝你即使用先来看下getOutputStream-又使用getWriter-防止出现数据的不连续性" class="headerlink" title="所以tomcat要杜绝你即使用先来看下getOutputStream,又使用getWriter.防止出现数据的不连续性."></a>所以tomcat要杜绝你即使用先来看下getOutputStream,又使用getWriter.防止出现数据的不连续性.</h4>
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="https://xuyuli.github.io/2017/05/10/hashMap的实现原理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -739,7 +855,7 @@ System.out.println(&quot;结果:&quot;+map.get(new Person(1234,&quot;萧峰&quot
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">2</span>
+                <span class="site-state-item-count">3</span>
                 <span class="site-state-item-name">Artikel</span>
               </a>
             </div>
